@@ -1,41 +1,6 @@
-use yew::prelude::*;
+mod app;
 
-enum Msg{
-    AddOne,
-}
-
-struct CounterComponent{
-    count: i64,
-}
-
-impl Component for CounterComponent{
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self{
-        Self { count: 0 }
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::AddOne => {
-                self.count += 1;
-                true
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html{
-        let link = ctx.link();
-        html! {
-            <div class={"container"}>
-                <h1>{ self.count }</h1>
-                <button onclick={link.callback(|_| Msg::AddOne)} >{"+1"}</button>
-            </div>
-        }
-    }
-}
-
-fn main() {
-    yew::start_app::<CounterComponent>();
+fn main(){
+    wasm_logger::init(wasm_logger::Config::default());
+    yew::start_app::<app::App>();
 }
