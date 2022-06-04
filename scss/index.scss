@@ -47,6 +47,10 @@ table {
 	border-spacing: 0;
 }
 
+*{
+	box-sizing: border-box;
+}
+
 /* Font import */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
 
@@ -55,6 +59,7 @@ table {
 :root{
     --text: #000;
     --background: #fff;
+	--primary: #ff4336e9;
 }
 
 body{
@@ -66,7 +71,8 @@ body{
 @media (prefers-color-scheme: dark){
     :root{
         --text: #fff;
-        --background: #000;
+        --background: #303030;
+		--primary: #ff4336e9;
     }
 }
 
@@ -75,11 +81,38 @@ body{
 
 header{
 	width: 100%;
-	height: auto;
+	height: 14vh;
 	display: flex;
-	justify-content: center;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 24px;
+	background-color: var(--primary);
+	
 	img{
-		width: 30%;
+		width: 150px;
 		margin: 12px 0;
+	}
+	.search-bar{
+		height: 40px;
+		display: flex;
+		align-items: center;
+		box-shadow: 1px 6px 10px 0 rgb(0 0 0 / 30%);
+		input{
+			font-size: 20px;
+			padding: 8px 12px;
+			outline: none;
+			border: none;
+			height: 100%;
+		}
+		button{
+			width: 40px;
+			height: 100%;
+			outline: none;
+			border: none;
+			background-color: gray;
+			svg{
+				color: white;
+			}
+		}
 	}
 }
