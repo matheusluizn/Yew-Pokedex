@@ -1,7 +1,11 @@
 use yew::prelude::*;
 use log;
 
-pub struct App{}
+use crate::components::header::Header;
+
+pub struct App{
+
+}
 
 impl Component for App{
     type Message = ();
@@ -14,7 +18,9 @@ impl Component for App{
     fn view(&self, _ctx: &Context<Self>) -> Html{
         log::info!("Mammamia");
         html!{
-            <h1>{"Poke Yew"}</h1>
+            <>
+            <Header />
+            </>
         }       
     }
 }
