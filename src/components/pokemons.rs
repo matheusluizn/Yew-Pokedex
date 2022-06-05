@@ -4,7 +4,7 @@ use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
-struct Pokemon{
+pub struct Pokemon{
     name: String,
     url: String
 }
@@ -14,7 +14,7 @@ pub struct PokemonResult{
     count: i32,
     next: String,
     previous: Option<i32>,
-    results: Vec<Pokemon>
+    results: Option<Vec<Pokemon>>
 }
 
 pub enum Msg{
@@ -32,9 +32,10 @@ impl Pokemons {
     fn render_pokemons(&self, pokemon_result: &Option<PokemonResult>) -> Html{
         match pokemon_result {
             Some(p) => {
+                let pokemons = &p.results;
                 html! {
                     <div>
-                        { &p.next }
+                        { pokemons.iter().map(|pokemons| self.view_pokemons(pokemons)).collect::<Html>() }
                     </div>
                 }
             }
@@ -43,6 +44,23 @@ impl Pokemons {
                     <div>{"loading..."}</div>
                 }
             }
+        }
+    }
+
+    fn view_pokemons(&self, pokemons : &Vec<Pokemon>) -> Html{
+        yew::services::ConsoleService::info(&format!("{:?}", pokemons));
+        html! {
+            <div>
+                { pokemons.iter().map(|pokemon| self.view_pokemon(pokemon)).collect::<Html>() }
+            </div>
+        }
+    }
+
+    fn view_pokemon(&self, pokemon: &Pokemon) -> Html{
+        html! {
+            <div>
+                {&pokemon.name}
+            </div>
         }
     }
 }
@@ -61,7 +79,8 @@ impl Component for Pokemons{
         }
     }
 
-    fn view(&self) -> Html {
+    fn view(&self) -> Html {    
+        yew::services::ConsoleService::info(&format!("{:?}", &self.pokemons));
         html! {
             <div>
                 { self.render_pokemons(&self.pokemons)}
@@ -72,7 +91,7 @@ impl Component for Pokemons{
     fn update(&mut self, msg: Self::Message ) -> ShouldRender {
         match msg{
             Msg::GetPokemon() => {
-                let req = Request::get("https://pokeapi.co/api/v2/pokemon?limit=1&offset=0")
+                let req = Request::get("https://pokeapi.co/api/v2/pokemon?limit=10&offset=0")
                 .body(Nothing)
                 .expect("Can make req to poke api");
 
