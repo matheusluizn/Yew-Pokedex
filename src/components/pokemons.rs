@@ -1,68 +1,100 @@
 use serde_derive::Deserialize;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
-use yew::services::{
-    fetch::{FetchService, FetchTask, Request, Response},
-    ConsoleService,
-};
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
-pub enum Msg {
-    GetPokemons,
-    Resp(Result<Vec<Pokemon>, anyhow::Error>),
-}
-
-struct Pokemons {
-    link: ComponentLink<Self>,
-    pokemons: Option<Vec<Pokemon>>,
-    fetch_pokemons: Option<FetchTask>,
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+struct Pokemon{
+    name: String,
+    url: String
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Pokemon {
-    pub name: String,
-    pub url: String,
+pub struct PokemonResult{
+    count: i32,
+    next: String,
+    previous: Option<i32>,
+    results: Vec<Pokemon>
 }
 
-impl Component for Pokemons {
-    type Message = Msg;
-    type Properties = ();
+pub enum Msg{
+    GetPokemon(),
+    Resp(Result<PokemonResult, anyhow::Error>)
+}
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        link.send_message(Msg::GetPokemons);
+pub struct Pokemons{
+    link: ComponentLink<Self>,
+    pokemons: Option<PokemonResult>,
+    fetch_pokemon: Option<FetchTask>
+}
+
+impl Pokemons {
+    fn render_pokemons(&self, pokemon_result: &Option<PokemonResult>) -> Html{
+        match pokemon_result {
+            Some(p) => {
+                html! {
+                    <div>
+                        { &p.next }
+                    </div>
+                }
+            }
+            None => {
+                html! {
+                    <div>{"loading..."}</div>
+                }
+            }
+        }
+    }
+}
+
+impl Component for Pokemons{
+    type Properties = ();
+    type Message = Msg;
+
+
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        link.send_message(Msg::GetPokemon());
         Self {
             link,
             pokemons: None,
-            fetch_pokemons: None,
+            fetch_pokemon: None,
         }
     }
-    fn update(&mut self, msg: Self::Message) -> bool {
-        match msg {
-            Msg::GetPokemons => {
-                self.pokemons = None;
+
+    fn view(&self) -> Html {
+        html! {
+            <div>
+                { self.render_pokemons(&self.pokemons)}
+            </div>
+        }
+    }
+
+    fn update(&mut self, msg: Self::Message ) -> ShouldRender {
+        match msg{
+            Msg::GetPokemon() => {
                 let req = Request::get("https://pokeapi.co/api/v2/pokemon?limit=1&offset=0")
-                    .body(Nothing)
-                    .expect("can maque req to pokeapi");
+                .body(Nothing)
+                .expect("Can make req to poke api");
 
-                let cb = self.link.callback(
-                    |response: Response<Json<Result<Vec<Pokemon>, anyhow::Error>>>| {
-                        let Json(data) = response.into_body();
-                        Msg::Resp(data)
-                    },
-                );
+                let cb = self.link.callback(|response: Response<Json<Result<PokemonResult, anyhow::Error>>>| {
+                    let Json(data) = response.into_body();
+                    Msg::Resp(data)
+                });
 
-                let task = FetchService::fetch(req, cb).expect("can create pokemons");
-                self.fetch_pokemons = Some(task);
+                let task = FetchService::fetch(req, cb).expect("can create task");
+                self.fetch_pokemon = Some(task);
                 ()
+            }
+            Msg::Resp(resp) => {
+                if let Ok(data) = resp {
+                    self.pokemons = Some(data);
+                }
             }
         }
         true
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        // Should only return "true" if new properties are different to
-        // previously received properties.
-        // This component has no properties so we will always return "false".
-        false
+        true
     }
 }
