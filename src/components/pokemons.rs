@@ -50,7 +50,7 @@ impl Pokemons {
     fn view_pokemons(&self, pokemons : &Vec<Pokemon>) -> Html{
         yew::services::ConsoleService::info(&format!("{:?}", pokemons));
         html! {
-            <div>
+            <div class={"pokemon"}>
                 { pokemons.iter().map(|pokemon| self.view_pokemon(pokemon)).collect::<Html>() }
             </div>
         }
@@ -58,8 +58,13 @@ impl Pokemons {
 
     fn view_pokemon(&self, pokemon: &Pokemon) -> Html{
         html! {
-            <div>
-                {&pokemon.name}
+            <div class={"pokemon-card"}>
+                <img src={String::from(&format!("https://img.pokemondb.net/sprites/black-white/anim/normal/{}.gif", &pokemon.name))} loading={"lazy"} />
+                
+                <h4>{"Nº 1"}</h4>
+                <h3>
+                    {&pokemon.name}
+                </h3>
             </div>
         }
     }
@@ -91,7 +96,7 @@ impl Component for Pokemons{
     fn update(&mut self, msg: Self::Message ) -> ShouldRender {
         match msg{
             Msg::GetPokemon() => {
-                let req = Request::get("https://pokeapi.co/api/v2/pokemon?limit=10&offset=0")
+                let req = Request::get("https://pokeapi.co/api/v2/pokemon?limit=649&offset=0")
                 .body(Nothing)
                 .expect("Can make req to poke api");
 

@@ -27,10 +27,10 @@ impl Component for App{
     fn view(&self) -> Html{
         log::info!("Mammamia");
         html!{
-            <>
+            <main>
             <Header />
             <Pokemons />
-            </>
+            </main>
         }       
     }
 }
