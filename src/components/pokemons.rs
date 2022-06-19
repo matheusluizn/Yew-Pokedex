@@ -1,21 +1,39 @@
 use serde_derive::Deserialize;
-use yew::format::{Json, Nothing};
+use serde_json::json;
+use yew::format::{Json};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
-#[derive(Deserialize, Clone, PartialEq, Debug)]
-pub struct Pokemon{
-    name: String,
-    url: String
-}
+
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct PokemonResult{
-    count: i32,
-    next: String,
-    previous: Option<i32>,
-    results: Option<Vec<Pokemon>>
+    data : PokemonV2Pokemon      
 }
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+struct PokemonV2Pokemon{
+    pokemon_v2_pokemon: Option<Vec<Pokemon>>
+}
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+struct Pokemon {
+    id: i32,
+    name: String,
+    pokemon_v2_pokemontypes: Vec<PokemonTypes>
+}
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+struct PokemonTypes {
+    pokemon_v2_type : PokemonTypeNames
+}
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+struct PokemonTypeNames{
+    name: String
+}
+
+
 
 pub enum Msg{
     GetPokemon(),
@@ -32,7 +50,7 @@ impl Pokemons {
     fn render_pokemons(&self, pokemon_result: &Option<PokemonResult>) -> Html{
         match pokemon_result {
             Some(p) => {
-                let pokemons = &p.results;
+                let pokemons = &p.data.pokemon_v2_pokemon;
                 html! {
                     <div>
                         { pokemons.iter().map(|pokemons| self.view_pokemons(pokemons)).collect::<Html>() }
@@ -41,14 +59,16 @@ impl Pokemons {
             }
             None => {
                 html! {
-                    <div>{"loading..."}</div>
+                    <div class={"loading"}>
+                        <img src={String::from("./assets/pokeball-icon.png")}/>
+                        <h1>{"Carregando Pokemons..."}</h1>
+                    </div>
                 }
             }
         }
     }
 
     fn view_pokemons(&self, pokemons : &Vec<Pokemon>) -> Html{
-        yew::services::ConsoleService::info(&format!("{:?}", pokemons));
         html! {
             <div class={"pokemon"}>
                 { pokemons.iter().map(|pokemon| self.view_pokemon(pokemon)).collect::<Html>() }
@@ -57,13 +77,19 @@ impl Pokemons {
     }
 
     fn view_pokemon(&self, pokemon: &Pokemon) -> Html{
+
+        let pokemon_name = &pokemon.name.split("-").collect::<Vec<&str>>()[0];
+        yew::services::ConsoleService::info("Mammamia");
+
         html! {
             <div class={"pokemon-card"}>
-                <img src={String::from(&format!("https://img.pokemondb.net/sprites/black-white/anim/normal/{}.gif", &pokemon.name))} loading={"lazy"} />
+                <object data={String::from(&format!("https://img.pokemondb.net/sprites/black-white/anim/normal/{}.gif", &pokemon.name))} loading={"lazy"} type="image/png">
+                    <img src={String::from(&format!("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{}.png", &pokemon.id))} />
+                </object>
                 
-                <h4>{"Nº 1"}</h4>
+                <h4>{"Nº "} {&pokemon.id}</h4>
                 <h3>
-                    {&pokemon.name}
+                    {pokemon_name}
                 </h3>
             </div>
         }
@@ -85,7 +111,6 @@ impl Component for Pokemons{
     }
 
     fn view(&self) -> Html {    
-        yew::services::ConsoleService::info(&format!("{:?}", &self.pokemons));
         html! {
             <div>
                 { self.render_pokemons(&self.pokemons)}
@@ -96,8 +121,14 @@ impl Component for Pokemons{
     fn update(&mut self, msg: Self::Message ) -> ShouldRender {
         match msg{
             Msg::GetPokemon() => {
-                let req = Request::get("https://pokeapi.co/api/v2/pokemon?limit=649&offset=0")
-                .body(Nothing)
+
+                let data = &json!({
+                    "operationName":"samplePokeAPIquery",
+                    "query":"query samplePokeAPIquery {\n  pokemon_v2_pokemon {\n    id\n    name\n    pokemon_v2_pokemontypes {\n      pokemon_v2_type {\n        name\n      }\n    }\n  }\n}\n"
+                });
+
+                let req = Request::post("https://beta.pokeapi.co/graphql/v1beta")
+                .body(Json(data))
                 .expect("Can make req to poke api");
 
                 let cb = self.link.callback(|response: Response<Json<Result<PokemonResult, anyhow::Error>>>| {
