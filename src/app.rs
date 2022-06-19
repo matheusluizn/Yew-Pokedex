@@ -1,5 +1,4 @@
 use yew::prelude::*;
-use log;
 
 use crate::components::header::Header;
 use crate::components::pokemons::Pokemons;
@@ -25,7 +24,6 @@ impl Component for App{
     }
     
     fn view(&self) -> Html{
-        log::info!("Mammamia");
         html!{
             <main>
             <Header />

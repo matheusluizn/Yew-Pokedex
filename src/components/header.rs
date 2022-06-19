@@ -19,7 +19,6 @@ impl Component for Header{
     }
     
     fn view(&self) -> Html{
-        log::info!("Header rendered");
         html!{
             <header>
                 <div class="search-bar">
